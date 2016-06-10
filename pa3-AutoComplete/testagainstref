@@ -1,0 +1,95 @@
+#!/bin/bash
+
+echo 'Dictionary filename: ' $1
+
+read -p "Would you like to run additional tests? (y/n) " ans
+ans=$(echo $ans | tr '[:upper:]' '[:lower:]')
+case $ans in
+  [Yy]* )
+    input="y"
+    while true ; do
+      read -p "Prefix: " pre
+      read -p "num_completions: " num
+      input=$input"\n"$pre"\n"$num
+      read -p "Would you like to enter another test? (y/n) " another
+      case $another in
+        [Yy]* ) ;;
+        [Nn]* )
+          break
+          ;;
+      esac
+    done
+    ;;
+  [Nn]* )
+    input="n"
+    ;;
+esac
+
+echo -e "$input" | ./benchtrie $1 > studentout
+echo -e "$input" | ./refbenchtrie $1 > refout
+
+while true ; do
+  # skip over the lines that don't matter
+  read -r ref <&3 || break
+  read -r st <&4 || break
+  if [[ ! $ref =~ "Test" ]] ; then
+    continue
+  fi
+
+  # print prefix
+  echo $ref
+
+  # try get the prefix
+  prefix_string=$(echo $ref | awk -F "\"" '{print $2}')
+  prefix_length=${#prefix_string}
+
+  # print time taken
+  read -r ref <&3 || break
+  read -r st <&4 || break
+  echo -e "Reference\t$ref"
+  echo -e "Your solution\t$st"
+  refTime=$(echo $ref | awk -F ":" '{print $3}' | awk '{print $1}')
+  stTime=$(echo $st | awk -F ":" '{print $3}' | awk '{print $1}')
+  perc=$(echo "scale=3; $stTime * 100 / $refTime" | bc)
+
+  # print results found
+  read -r ref <&3 || break
+  read -r st <&4 || break
+  echo -e "Reference\t$ref"
+  echo -e "Your solution\t$st"
+
+  # print time percentage and message
+  echo -n "Your solution takes $perc% of the time that the reference solution takes."
+
+  # case where just 1 letter. use factor of 10
+  if (( "$prefix_length" == "1" )); then
+    if (( $(echo "$perc > 10" | bc -l) )) ; then
+      echo " Nice job, but your solution needs to get faster!"
+    elif (( $(echo "$perc > 13" | bc -l) )) ; then
+      echo " Nice work! You pass...on this test, but you probably want to get a little faster since running times can change a bit between runs."
+    else
+      echo " Nice job! You pass the timing test!"
+    fi
+  # case where iterating. use factor of 100
+  elif [ "$prefix_string" = '*iterating through alphabet*' ]; then
+    if (( $(echo "$perc > 1" | bc -l) )) ; then
+      echo " Nice job, but your solution needs to get faster!"
+    elif (( $(echo "$perc > 2" | bc -l) )) ; then
+      echo " Nice work! You pass...on this test, but you probably want to get a little faster since running times can change a bit between runs."
+    else
+      echo " Nice job! You pass the timing test!"
+    fi
+  # default case
+  else
+    if (( $(echo "$perc > 50" | bc -l) )) ; then
+      echo " Nice job, but your solution needs to get faster!"
+    elif (( $(echo "$perc > 45" | bc -l) )) ; then
+      echo " Nice work! You pass...on this test, but you probably want to get a little faster since running times can change a bit between runs."
+    else
+      echo " Nice job! You pass the timing test!"
+    fi
+  fi
+
+
+  echo
+done 3<refout 4<studentout

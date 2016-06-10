@@ -1,0 +1,12 @@
+----------Further Investigate into Kevin Bacon----------
+
+Suppose one day you have a chance to interview a famous actor, for example, Kevin Bacon. You may want to know what the average distance to Kevin Bacon is, which indicating how close Kevin Bacon is to the majority of other actors.
+
+I solved it by implementing a function called "averagepath" which divides the total path from Kevin Bacon by the number of actors Kevin has path to.
+I tested it by inputting ./extension movie_actor.tsv into terminal and outputed the actor with the biggest and the shortest average path.
+
+Moreover, if you want to know the average distance to the other actor is, you can substitute Kevin Bacon into the other actor.
+
+Here is the output:
+The average distance to Kevin Bacon = 2.95337
+The biggest path to Kevin Bacon is 3 from GREEN, DANNON
